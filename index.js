@@ -1,52 +1,38 @@
-// const request = require('request-promise');
+const fs = require('fs');
+const path = require('path');
 
-// request(
-//   "http://geeklyinc.com/GeeklyCon-Calendar.php",
-//   {
-//     method: "POST",
-//     formData: {
-//       Filter: "andrewcarreiro@gmail.com",
-//       FilterBtn: "Set Filter"
-//     }
-//   }
-// ).then( result => {
-//   console.log(result);
-// })
-// .catch( e => {
-//   console.error(e);
-// });
+const fetchGeeklyCon = require('./fetchGeeklyCon');
+const event2ical = require('./event2ical');
 
-const Path = require('path');
 
-const phantomjs = require('phantomjs-prebuilt');
-const webdriverio = require('webdriverio');
+exports.local = () => {
+  fetchGeeklyCon("andrewcarreiro@gmail.com")
+  .then( event2ical )
+  .then( icalString => {
+    fs.writeFileSync(path.join(__dirname, "./test.ics"), icalString);
+  })
+  .catch ( e => {
+    console.error('fail',e);
+  });
+}
 
-var wdOpts = { desiredCapabilities: { browserName: 'phantomjs' } }
- 
-phantomjs.run('--webdriver=4444').then(program => {
-  var browser = webdriverio.remote(wdOpts).init();
-  browser.url(`file://${Path.join(__dirname,"./post.html")}`)
-    // .then( () => { console.log("1"); return browser.setValue("#filter", "andrewcarreiro@gmail.com"); } )
-    // .then( () => { console.log("2"); return browser.submitForm("#theform"); } )
-    // .then( () => { console.log("3"); return browser.getTitle(); } )
-    .then( () => { 
-      var val = browser.setValue("#filter", "andrewcarreiro@gmail.com");
-      console.log("val",val );
-      
-      var sub = browser.submitForm("#theform");
-      console.log("sub",sub)
-      return browser.getUrl();
-    } )
-    .then( title => {
-      console.log(title);
-      program.kill();
-    });
-    
-    // .submitForm("#theform")
-    // .then( args => {
-    //   console.log('done worked');
-    // .getTitle().then(title => {
-    //   console.log(title) // 'Mozilla Developer Network' 
-    //   program.kill() // quits PhantomJS 
-    // })
-})
+exports.http = ( req, res ) => {
+  if( ! req.query.email ){
+    return res.status(404).send("Add your email in the url with `email=cool@geeklyinc.com`");
+  }
+
+  if( req.query.email == "youremailhere@gmail.com" ){
+    return res.status(404).send("Put your real email up there!");
+  }
+
+  fetchGeeklyCon("andrewcarreiro@gmail.com")
+  .then( event2ical )
+  .then( icalString => {
+    res.set('Content-disposition', 'attachment; filename=geeklycon-calendar.ics');
+    res.set('Content-type','text/calendar');
+    res.status(200).send(icalString)
+  })
+  .catch( e => {
+    res.status(500).send("oh shit something went wrong. Message @andrew on slack with this: "+e);
+  });
+}

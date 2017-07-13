@@ -9,9 +9,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "icalendar": "^0.7.1",
     "phantomjs-prebuilt": "^2.1.14",
-    "request": "^2.81.0",
     "request-promise": "^4.2.1",
+    "uuid": "^3.1.0",
     "webdriverio": "^4.8.0"
   }
 }
