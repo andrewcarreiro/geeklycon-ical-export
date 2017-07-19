@@ -11,7 +11,7 @@ function event2ical(eventData) {
     console.log('converting event data',event);
     const iCalEvent = new icalendar.VEvent(uuidv5(event.id, UUID_NAMESPACE))
     iCalEvent.setSummary(event.title);
-    iCalEvent.setDate(new Date(event.start * 1000), event.stop - event.start);
+    iCalEvent.setDate(event.start * 1000, event.stop - event.start);
 
     ical.addComponent(iCalEvent);
   });
